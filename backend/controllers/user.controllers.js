@@ -33,7 +33,7 @@ export const editProfile = async(req,res)=>{
             image
         },{new:true})
         if(!user){
-            return res.status(400).json(user)
+            return res.status(400)
         }
 
         return res.status(200).json(user)
