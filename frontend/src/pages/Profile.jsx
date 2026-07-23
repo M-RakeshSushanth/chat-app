@@ -1,9 +1,12 @@
 import React,{useRef, useState} from 'react'
 import dp from "../assets/dp3.webp"
 import { IoCameraOutline } from "react-icons/io5";
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { IoArrowBackOutline } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
+import {serverUrl } from '../main.jsx'
+import { setUserData } from '../redux/userSlice';
+import axios from 'axios';
 
 function Profile() {
   let {userData} = useSelector(state=>state.user)
@@ -12,6 +15,8 @@ function Profile() {
   let [name,setName] = useState(userData?.name||"")
  let [frontendImage,setFrontendImage] = useState(userData.image ||dp)
  let [backendImage,setBackendImage] = useState(null)
+let dispatch = useDispatch()
+let [saving,setSaving] = useState(false)
 
  const handleImage =(e)=>{
   let file = e.target.files[0]
@@ -20,18 +25,24 @@ function Profile() {
  }
 
 
- const handleProfile = async()=>{
+ const handleProfile = async(e)=>{
+  setSaving(true)
   e.preventDefault()
   try{
         let formData  = new FormData()
         formData.append("name",name)
         if(backendImage)
         {
-          formData.append("image",image)
+          formData.append("image",backendImage)
         }
+        let result = await axios.put(`${serverUrl}/api/user/profile`,formData,{withCredentials:true})
+        setSaving(false)
+        dispatch(setUserData(result.data))
+        navigate("/")
   }catch(error)
   {
-
+console.log(error)
+setSaving(false)
   }
 
  }
@@ -55,7 +66,7 @@ function Profile() {
           }} value={name}/>
           <input type="text" readOnly value={userData?.userName}className="w-[90%] h-[50px] outline-none border-2 border-[#20c7ff] px-[20px] py-[10px] bg-white rounded-lg shadow-gray-200 shadow-lg text-gray-400"/>
           <input type="text" readOnly value={userData?.email}className="w-[90%] h-[50px] outline-none border-2 border-[#20c7ff] px-[20px] py-[10px] bg-white rounded-lg shadow-gray-200 shadow-lg text-gray-400"/>
-          <button type="submit" className="px-[20px] py-[10px] bg-[#20c7ff] rounded-2xl shadow-gray-200 shadow-lg text-[20px] font-semibold hover:shadow-inner" >save profile</button>
+          <button type="submit" className="px-[20px] py-[10px] bg-[#20c7ff] rounded-2xl shadow-gray-200 shadow-lg text-[20px] font-semibold hover:shadow-inner cursor-pointer" disabled={saving}>{saving?"saving...":"save profile"}</button>
         </form>
     </div>
   )
